@@ -44,12 +44,12 @@ function Home() {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8">
       <section className="relative overflow-hidden rounded-2xl border bg-card shadow-card">
+        <div className="absolute inset-0 bg-gradient-to-r from-warning-soft via-card/80 to-transparent" />
         <div aria-hidden className="pointer-events-none absolute -right-6 bottom-0 hidden items-end gap-3 md:flex">
           {books.slice(0, 5).map((b, i) => (
             <BookCover key={b.id} book={b} className={["w-24 rotate-[-6deg]", "w-28", "w-32 rotate-[4deg]", "w-28 -rotate-2", "w-24 rotate-6"][i] + " translate-y-4"} />
           ))}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-warning-soft via-card/80 to-transparent" />
         <div className="relative max-w-lg p-6 sm:p-10">
           <span className="rounded-full bg-accent px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-accent-foreground">Your library</span>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-navy sm:text-5xl">Discover. Learn. Grow.</h1>
