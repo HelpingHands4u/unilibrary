@@ -104,6 +104,7 @@ export interface Resource {
   title: string;
   kind: "Lecture Notes" | "Past Paper" | "Syllabus";
   course: string;
+  url?: string;
   approved: boolean;
   submittedBy: string;
 }

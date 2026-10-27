@@ -15,7 +15,7 @@ function useNav() {
     { to: "/catalog", label: "Explore", icon: Compass },
     { to: "/resources", label: "E-Resources", icon: GraduationCap },
   ] as const;
-  const extra: { to: string; label: string; icon: typeof Home }[] = [];
+  const extra: { to: "/my-library" | "/librarian" | "/admin"; label: string; icon: typeof Home }[] = [];
   if (user) {
     extra.push({ to: "/my-library", label: "My Books", icon: BookOpen });
     extra.push({ to: "/my-library", label: "Wishlist", icon: Heart });
@@ -140,7 +140,7 @@ function Notifications() {
   const mine = state.notifications.filter((n) => n.userId === user.id);
   const unread = mine.filter((n) => !n.isRead).length;
   return (
-    <Popover onOpenChange={(o) => !o && unread && actions.markRead(user.id)}>
+    <Popover onOpenChange={(o) => { if (!o && unread) void Promise.resolve(actions.markRead(user.id)).catch(() => {}); }}>
       <PopoverTrigger asChild>
         <button aria-label="Notifications" className="relative grid size-10 shrink-0 place-items-center rounded-lg hover:bg-muted">
           <Bell className="size-5" />
@@ -278,11 +278,11 @@ function Footer() {
         </div>
         <div>
           <p className="font-bold">Library timings</p>
-          <p className="mt-2 opacity-80">Mon–Sat: 8:00 AM – 9:00 PM<br />Sunday: 10:00 AM – 4:00 PM</p>
+          <p className="mt-2 opacity-80">Timings to be confirmed by the university</p>
         </div>
         <div>
           <p className="font-bold">Helpdesk</p>
-          <p className="mt-2 opacity-80">library@university.edu<br />+91 00000 00000 (sample)</p>
+          <p className="mt-2 opacity-80">Contact details to be confirmed</p>
         </div>
       </div>
       <p className="border-t border-sidebar-border px-6 py-3 text-xs opacity-70">

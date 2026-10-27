@@ -1,18 +1,26 @@
 import { useSyncExternalStore } from "react";
 import type { LibraryState, Loan, Role, User } from "./types";
+import { firebaseConfigured } from "@/lib/firebase";
+import { connectFirestore, libraryCommand } from "./remote";
 import { buildSeed } from "./seed";
 import { addDays, calculateFine, canRenew, checkIssueEligibility, daysOverdue } from "./rules";
 
 const KEY = "unilibrary.v1";
 const SESSION = "unilibrary.session";
 
-let state: LibraryState = buildSeed();
+const initialState = () => {
+  const seed = buildSeed(new Date("2026-10-27T00:00:00Z"));
+  if (!firebaseConfigured) return seed;
+  return { ...seed, books: [], copies: [], users: [], loans: [], reservations: [], fines: [], wishlists: [], notifications: [], reviews: [], resources: [], audit: [], recent: [] };
+};
+let state: LibraryState = initialState();
+let externalUser: User | null = null;
 let sessionId: string | null = null;
 const listeners = new Set<() => void>();
 let hydrated = false;
 
 function emit() {
-  if (typeof window !== "undefined") {
+  if (!firebaseConfigured && typeof window !== "undefined") {
     localStorage.setItem(KEY, JSON.stringify(state));
     if (sessionId) localStorage.setItem(SESSION, sessionId);
     else localStorage.removeItem(SESSION);
@@ -23,6 +31,17 @@ function emit() {
 export function hydrateStore() {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
+  if (firebaseConfigured) {
+    void connectFirestore((key, rows) => {
+      if (key === "resources" && rows && typeof rows === "object" && "ownerRows" in rows) {
+        const own = (rows as { ownerRows: LibraryState["resources"] }).ownerRows;
+        state = { ...state, resources: [...state.resources.filter(r => !own.some(o => o.id === r.id)), ...own] };
+      } else state = { ...state, [key]: rows };
+      if (key === "users" && externalUser) externalUser = { ...externalUser, ...state.users.find(u => u.id === externalUser?.id), role: externalUser.role };
+      emit();
+    }, user => { externalUser = user; sessionId = user?.id ?? null; emit(); }, message => { void import("sonner").then(({ toast }) => toast.error(message)); });
+    return;
+  }
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) state = JSON.parse(raw);
@@ -41,7 +60,7 @@ function subscribe(l: () => void) {
 type Snap = { state: LibraryState; user: User | null };
 let snap: Snap = { state, user: null };
 function getSnap(): Snap {
-  const user = sessionId ? state.users.find((u) => u.id === sessionId) ?? null : null;
+  const user = firebaseConfigured ? externalUser : sessionId ? state.users.find((u) => u.id === sessionId) ?? null : null;
   if (snap.state !== state || snap.user !== user) snap = { state, user };
   return snap;
 }
@@ -74,7 +93,7 @@ function requireRole(...roles: Role[]) {
 }
 const title = (bookId: string) => state.books.find((b) => b.id === bookId)?.title ?? "Book";
 
-export const actions = {
+const demoActions = {
   signInDemo(email: string) {
     const u = state.users.find((x) => x.email.toLowerCase() === email.toLowerCase());
     if (!u) throw new Error("No account with that email");
@@ -88,7 +107,8 @@ export const actions = {
     if (!existing) {
       state = { ...state, users: [...state.users, { id, email, name, role: roleFromServer, maxBorrowLimit: 4, active: true }] };
     }
-    sessionId = existing?.id ?? id;
+    externalUser = { id, email, name, role: roleFromServer, maxBorrowLimit: 4, active: true };
+    sessionId = firebaseConfigured ? id : existing?.id ?? id;
     emit();
   },
   register(name: string, email: string, rollNumber: string, department: string) {
@@ -100,6 +120,8 @@ export const actions = {
   },
   signOut() {
     sessionId = null;
+    externalUser = null;
+    if (firebaseConfigured) void import("firebase/auth").then(async ({ getAuth, signOut }) => { const { getFirebaseApp } = await import("@/lib/firebase"); const app = getFirebaseApp(); if (app) await signOut(getAuth(app)); });
     emit();
   },
   resetDemo() {
@@ -241,7 +263,8 @@ export const actions = {
   },
   addCopy(bookId: string) {
     requireRole("librarian", "admin");
-    const book = state.books.find((b) => b.id === bookId)!;
+    const book = state.books.find((b) => b.id === bookId);
+    if (!book) throw new Error("Book not found");
     const n = state.copies.filter((c) => c.bookId === bookId).length + 1;
     set((s) => log({ ...s, copies: [...s.copies, { id: `${bookId}-c${n}-${Date.now()}`, bookId, barcode: `UL${7000 + s.copies.length}`, shelf: book.shelf, status: "available" }] }, "copy.create", book.title));
   },
@@ -264,9 +287,18 @@ export const actions = {
     requireRole("admin");
     set((s) => log({ ...s, users: s.users.map((u) => (u.id === userId ? { ...u, active } : u)) }, "user.active", `${userId} → ${active}`));
   },
-  submitResource(title: string, kind: "Lecture Notes" | "Past Paper" | "Syllabus", course: string) {
+  updateProfile(name: string, rollNumber: string, department: string) {
+    const u = me();
+    if (name.trim().length < 2) throw new Error("Enter your full name");
+    set(s => ({ ...s, users: s.users.map(x => x.id === u.id ? { ...x, name, rollNumber, department } : x) }));
+  },
+  updateBook(bookId: string, patch: Partial<LibraryState["books"][number]>) {
+    requireRole("admin", "librarian");
+    set(s => log({ ...s, books: s.books.map(b => b.id === bookId ? { ...b, ...patch, id: b.id } : b) }, "book.update", bookId));
+  },
+  submitResource(title: string, kind: "Lecture Notes" | "Past Paper" | "Syllabus", course: string, url: string = "") {
     const u = requireRole("faculty", "admin", "librarian");
-    set((s) => log({ ...s, resources: [{ id: uid("res"), title, kind, course, approved: u.role === "admin", submittedBy: u.id }, ...s.resources] }, "resource.submit", title));
+    set((s) => log({ ...s, resources: [{ id: uid("res"), title, kind, course, url, approved: u.role === "admin", submittedBy: u.id }, ...s.resources] }, "resource.submit", title));
   },
   approveResource(id: string) {
     requireRole("admin");
@@ -279,3 +311,13 @@ export function bookStats(s: LibraryState, bookId: string) {
   const lendable = copies.filter((c) => c.status !== "reference");
   return { total: lendable.length, available: lendable.filter((c) => c.status === "available").length, copies };
 }
+
+const localOnly = new Set(["signInDemo", "signInExternal", "signOut", "register", "resetDemo"]);
+export const actions = new Proxy(demoActions, { get(target, key: keyof typeof demoActions) {
+  const fn = target[key];
+  if (localOnly.has(key)) return (...args: unknown[]) => {
+    if (firebaseConfigured && ["signInDemo", "register", "resetDemo"].includes(key)) throw new Error("Demo actions are unavailable for live accounts");
+    return Reflect.apply(fn, target, args);
+  };
+  return (...args: unknown[]) => firebaseConfigured ? libraryCommand(key, args) : Reflect.apply(fn, target, args);
+} });
