@@ -54,7 +54,7 @@ function Login() {
     setBusy(true);
     try {
       if (firebaseConfigured) {
-        const r = await firebaseSignIn(f.email, f.password, tab === "register" ? { name: f.name } : undefined);
+        const r = await firebaseSignIn(f.email, f.password, tab === "register" ? { name: f.name.trim(), rollNumber: f.roll.trim().toUpperCase(), department: f.dept.trim() } : undefined);
         actions.signInExternal(r.uid, r.email, r.name, r.role);
         done(r.role);
       } else if (tab === "register") {
@@ -83,7 +83,7 @@ function Login() {
             <p className="mt-1 text-xs opacity-80">Firebase isn't configured yet, so data is saved in this browser. Try a demo account (any password):</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {DEMO.map(([r, em]) => (
-                <button key={r} onClick={() => done(actions.signInDemo(em).role)} className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground">{r}</button>
+                <Button type="button" key={r} onClick={() => done(actions.signInDemo(em).role)} className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-accent-foreground">{r}</Button>
               ))}
             </div>
           </div>

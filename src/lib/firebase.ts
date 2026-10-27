@@ -18,7 +18,7 @@ export function getFirebaseApp(): FirebaseApp | null {
 }
 
 /** Sign in with Firebase Auth, then read the role from Firestore users/{uid} (written only by admins / backend). */
-export async function firebaseSignIn(email: string, password: string, register?: { name: string }) {
+export async function firebaseSignIn(email: string, password: string, register?: { name: string; rollNumber: string; department: string }) {
   const app = getFirebaseApp();
   if (!app) throw new Error("Firebase is not configured");
   const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
@@ -30,10 +30,11 @@ export async function firebaseSignIn(email: string, password: string, register?:
     : await signInWithEmailAndPassword(auth, email, password);
   if (register) {
     await updateProfile(cred.user, { displayName: register.name });
-    // Security rules must only allow role == "student" on self-create.
-    await setDoc(doc(db, "users", cred.user.uid), { name: register.name, email, role: "student", maxBorrowLimit: 4, active: true });
+    // Profiles never contain permissions; user_roles is written only by the trusted service.
+    await setDoc(doc(db, "users", cred.user.uid), { id: cred.user.uid, name: register.name, email: cred.user.email, rollNumber: register.rollNumber, department: register.department, maxBorrowLimit: 4, active: true });
   }
   const snap = await getDoc(doc(db, "users", cred.user.uid));
-  const role = (snap.data()?.role as "student" | "librarian" | "admin" | "faculty") ?? "student";
-  return { uid: cred.user.uid, email, name: cred.user.displayName ?? email, role };
+  const roleSnap = await getDoc(doc(db, "user_roles", cred.user.uid));
+  const role = (roleSnap.data()?.role as "student" | "librarian" | "admin" | "faculty") ?? "student";
+  return { uid: cred.user.uid, email: cred.user.email ?? email, name: snap.data()?.name ?? cred.user.displayName ?? email, role };
 }
