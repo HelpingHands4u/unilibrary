@@ -14,6 +14,8 @@ export const Route = createFileRoute("/login")({
   validateSearch: zodValidator(z.object({ mode: fallback(z.string(), "signin").default("signin") })),
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Sign in — UniLibrary" },
       { name: "description", content: "Sign in or register for your UniLibrary account." },
       { property: "og:title", content: "Sign in — UniLibrary" },
@@ -35,7 +37,7 @@ const DEMO = [
   ["Librarian", "librarian@unilibrary.edu"],
   ["Admin", "admin@unilibrary.edu"],
   ["Faculty", "faculty@unilibrary.edu"],
-];
+ ] as const;
 
 function Login() {
   const { mode } = Route.useSearch();
@@ -50,7 +52,7 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = tab === "register" ? regSchema.safeParse(f) : signInSchema.safeParse(f);
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Check the form"); return; }
     setBusy(true);
     try {
       if (firebaseConfigured) {

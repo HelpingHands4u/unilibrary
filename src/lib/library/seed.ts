@@ -77,7 +77,7 @@ export function buildSeed(now = new Date()): LibraryState {
     reviewCount: 20 + ((i * 37) % 180),
     description: `${title} by ${author} is a widely used ${category.toLowerCase()} resource in university curricula. It builds strong fundamentals with worked examples, end-of-chapter exercises and real-world case studies, making it suitable for both coursework and self-study. Students preparing for semester exams and competitive tests will find the structured progression especially helpful.`,
     topics: ["Foundations", "Core concepts", "Worked examples", "Applications", "Exercises & review"],
-    coverColor: COVERS[i % COVERS.length],
+    coverColor: COVERS[i % COVERS.length] ?? "cover-1",
     shelf: `Floor ${(i % 3) + 1}, Shelf ${String.fromCharCode(65 + (i % 6))}-${10 + i}`,
     borrowCount: 15 + ((i * 53) % 140),
     addedAt: addDays(now, -((i * 11) % 120)),
@@ -110,6 +110,7 @@ export function buildSeed(now = new Date()): LibraryState {
   const loans: Loan[] = [];
   const mkLoan = (userId: string, bookIdx: number, issuedAgo: number, returnedAgo?: number) => {
     const book = books[bookIdx];
+    if (!book) return;
     const copy = copies.find((c) => c.bookId === book.id && c.status === "available");
     if (!copy) return;
     const issue = addDays(now, -issuedAgo);
@@ -121,7 +122,7 @@ export function buildSeed(now = new Date()): LibraryState {
       copyId: copy.id,
       issueDate: issue,
       dueDate: due,
-      returnDate: returnedAgo !== undefined ? addDays(now, -returnedAgo) : undefined,
+      ...(returnedAgo !== undefined ? { returnDate: addDays(now, -returnedAgo) } : {}),
       status: returnedAgo !== undefined ? "returned" : "active",
       renewals: 0,
       fineAmount: 0,

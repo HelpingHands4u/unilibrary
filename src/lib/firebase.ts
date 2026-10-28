@@ -4,17 +4,17 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 
 const cfg = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string | undefined,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string | undefined,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID as string | undefined,
+  apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] as string | undefined,
+  authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] as string | undefined,
+  projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] as string | undefined,
+  appId: import.meta.env['VITE_FIREBASE_APP_ID'] as string | undefined,
 };
 
 export const firebaseConfigured = Boolean(cfg.apiKey && cfg.projectId && cfg.authDomain);
 
 export function getFirebaseApp(): FirebaseApp | null {
   if (!firebaseConfigured || typeof window === "undefined") return null;
-  return getApps()[0] ?? initializeApp(cfg);
+  return getApps()[0] ?? initializeApp({ apiKey: cfg.apiKey ?? "", authDomain: cfg.authDomain ?? "", projectId: cfg.projectId ?? "", appId: cfg.appId ?? "" });
 }
 
 /** Sign in with Firebase Auth, then read the role from Firestore users/{uid} (written only by admins / backend). */
@@ -35,6 +35,6 @@ export async function firebaseSignIn(email: string, password: string, register?:
   }
   const snap = await getDoc(doc(db, "users", cred.user.uid));
   const roleSnap = await getDoc(doc(db, "user_roles", cred.user.uid));
-  const role = (roleSnap.data()?.role as "student" | "librarian" | "admin" | "faculty") ?? "student";
-  return { uid: cred.user.uid, email: cred.user.email ?? email, name: snap.data()?.name ?? cred.user.displayName ?? email, role };
+  const role = (roleSnap.data()?.['role'] as "student" | "librarian" | "admin" | "faculty") ?? "student";
+  return { uid: cred.user.uid, email: cred.user.email ?? email, name: snap.data()?.['name'] ?? cred.user.displayName ?? email, role };
 }

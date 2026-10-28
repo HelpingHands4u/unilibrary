@@ -7,11 +7,14 @@ import { Input } from "@/components/ui/input";
 import { StatCard, fmtDate } from "@/components/lib/bits";
 import { actions, useLibrary } from "@/lib/library/store";
 import { daysOverdue } from "@/lib/library/rules";
+import { firebaseConfigured } from "@/lib/firebase";
 import type { Role } from "@/lib/library/types";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Admin Dashboard — UniLibrary" },
       { name: "description", content: "Library statistics, settings, users and audit logs." },
       { property: "og:title", content: "Admin Dashboard — UniLibrary" },
@@ -25,7 +28,7 @@ function Admin() {
   const { state, user } = useLibrary();
   if (user?.role !== "admin") return <p className="py-16 text-center font-semibold">Administrator access only.</p>;
   const now = new Date();
-  const run = (fn: () => void) => { try { fn(); toast.success("Saved"); } catch (e) { toast.error((e as Error).message); } };
+  const run = async (fn: () => unknown) => { try { await fn(); toast.success("Saved"); } catch (e) { toast.error((e as Error).message); } };
   const active = state.loans.filter((l) => l.status === "active");
   const cats = Object.entries(state.loans.reduce<Record<string, number>>((m, l) => { const c = state.books.find((b) => b.id === l.bookId)?.category ?? "?"; m[c] = (m[c] ?? 0) + 1; return m; }, {})).map(([name, n]) => ({ name: name.split(" ")[0], n }));
   return (
@@ -46,7 +49,7 @@ function Admin() {
         <h2 className="font-bold">Library settings</h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {(["loanDays", "finePerDay", "maxLoans", "maxRenewals", "fineBlockThreshold", "reservationHoldDays"] as const).map((k) => (
-            <label key={k} className="text-xs font-medium text-muted-foreground">{k}<Input type="number" min={0} defaultValue={state.settings[k]} onBlur={(e) => run(() => actions.updateSettings({ [k]: Math.max(0, Number(e.target.value)) }))} /></label>
+            <label key={k} className="text-xs font-medium text-muted-foreground">{{loanDays: "Loan period (days)", finePerDay: "Fine per day (₹)", maxLoans: "Maximum loans", maxRenewals: "Maximum renewals", fineBlockThreshold: "Fine threshold (₹)", reservationHoldDays: "Pickup hold (days)"}[k]}<Input type="number" min={0} defaultValue={state.settings[k]} onBlur={(e) => run(() => actions.updateSettings({ [k]: Math.max(0, Number(e.target.value)) }))} /></label>
           ))}
         </div>
       </section>
@@ -67,7 +70,7 @@ function Admin() {
         </div>
       </section>
       <section className="rounded-xl border bg-card p-4 shadow-card">
-        <div className="flex items-center justify-between"><h2 className="font-bold">Audit log</h2><Button size="sm" variant="ghost" onClick={() => { actions.resetDemo(); toast.success("Demo data reset"); }}>Reset demo data</Button></div>
+        <div className="flex items-center justify-between"><h2 className="font-bold">Audit log</h2><Button disabled={firebaseConfigured} size="sm" variant="ghost" onClick={() => { actions.resetDemo(); toast.success("Demo data reset"); }}>Reset demo data</Button></div>
         <div className="mt-2 max-h-72 overflow-y-auto text-xs">
           {state.audit.slice(0, 50).map((a) => <p key={a.id} className="border-b py-1.5"><span className="text-muted-foreground">{fmtDate(a.timestamp)}</span> · <b>{a.action}</b> · {a.detail}</p>)}
         </div>
