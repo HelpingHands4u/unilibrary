@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookCopy, Brain, Briefcase, Calculator, Cpu, Database, FileText, Atom, Landmark, Laptop, ShieldCheck, Users, Wrench, Library, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BookCover, Shelf, StatCard } from "@/components/lib/bits";
+import libraryImage from "@/assets/library.jpg";
+import { Shelf, StatCard } from "@/components/lib/bits";
 import { useLibrary } from "@/lib/library/store";
 
 export const Route = createFileRoute("/")({
@@ -45,26 +46,16 @@ function Home() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8">
-      <section className="relative overflow-hidden rounded-2xl border bg-card shadow-card">
-        <div className="absolute inset-0 bg-gradient-to-r from-warning-soft via-card/80 to-transparent" />
-        <div aria-hidden className="pointer-events-none absolute -right-6 bottom-0 hidden items-end gap-3 md:flex">
-          {books.slice(0, 5).map((b, i) => (
-            <BookCover key={b.id} book={b} className={["w-24 rotate-[-6deg]", "w-28", "w-32 rotate-[4deg]", "w-28 -rotate-2", "w-24 rotate-6"][i] + " translate-y-4"} />
-          ))}
-        </div>
-        <div className="relative max-w-lg p-6 sm:p-10">
-          <span className="rounded-full bg-accent px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-accent-foreground">Your library</span>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-navy sm:text-5xl">Discover. Learn. Grow.</h1>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">Explore your university library, discover new ideas, and access the resources you need to succeed.</p>
+      <section className="relative min-h-80 overflow-hidden bg-navy text-navy-foreground">
+        <img src={libraryImage} width={1536} height={1024} alt="A bright university library with study tables and academic books" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-navy/75" />
+        <div className="relative max-w-xl p-6 sm:p-10">
+          <p className="text-sm font-semibold text-accent">Discover. Learn. Grow.</p>
+          <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">UniLibrary</h1>
+          <p className="mt-3 text-sm sm:text-base">Explore your university library, discover new ideas, and access the resources you need to succeed.</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <Link to="/catalog">Explore Catalog <ArrowRight className="size-4" /></Link>
-            </Button>
-            {user && (
-              <Button asChild size="lg" variant="outline">
-                <Link to="/my-library">My Books</Link>
-              </Button>
-            )}
+            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90"><Link to="/catalog">Explore Catalog <ArrowRight className="size-4" /></Link></Button>
+            {user && <Button asChild size="lg" variant="secondary"><Link to="/my-library">My Books</Link></Button>}
           </div>
         </div>
       </section>
