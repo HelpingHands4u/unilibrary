@@ -1,14 +1,14 @@
 import { getFirebaseApp } from '@/lib/firebase';
 import type { LibraryState, User } from './types';
 
-export const apiConfigured = Boolean(import.meta.env.VITE_LIBRARY_API_URL);
+export const apiConfigured = Boolean(import.meta.env['VITE_LIBRARY_API_URL']);
 export async function libraryCommand(command: string, args: unknown[]) {
   const app = getFirebaseApp();
   if (!app) throw new Error('Firebase is not configured');
   const { getAuth } = await import('firebase/auth');
   const user = getAuth(app).currentUser;
   if (!user) throw new Error('Please sign in first');
-  const url = import.meta.env.VITE_LIBRARY_API_URL;
+  const url = import.meta.env['VITE_LIBRARY_API_URL'];
   if (!url) throw new Error('The library service is not connected yet');
   const response = await fetch(`${url.replace(/\/$/, '')}/commands`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
@@ -38,7 +38,7 @@ export async function connectFirestore(update: (key: keyof LibraryState, rows: u
       let user: User | null = null;
       if (authUser) {
         const [profile, role] = await Promise.all([getDoc(doc(db, 'users', authUser.uid)), getDoc(doc(db, 'user_roles', authUser.uid))]);
-        if (profile.exists()) user = { ...profile.data(), id: authUser.uid, role: role.data()?.role ?? 'student' } as User;
+        if (profile.exists()) user = { ...profile.data(), id: authUser.uid, role: role.data()?.['role'] ?? 'student' } as User;
       }
       session(user);
       const staff = user?.role === 'admin' || user?.role === 'librarian';

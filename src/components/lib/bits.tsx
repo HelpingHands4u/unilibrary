@@ -52,13 +52,13 @@ export function Stars({ value, className }: { value: number; className?: string 
 
 export function useRequireUser() {
   const { user } = useLibrary();
-  return (fn: () => void) => {
+  return async (fn: () => unknown) => {
     if (!user) {
       toast.info("Please sign in to continue");
       return;
     }
     try {
-      fn();
+      await fn();
     } catch (e) {
       toast.error((e as Error).message);
     }

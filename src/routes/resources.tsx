@@ -10,6 +10,8 @@ import { actions, useLibrary } from "@/lib/library/store";
 export const Route = createFileRoute("/resources")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Digital Resources — UniLibrary" },
       { name: "description", content: "Lecture notes, past exam papers and syllabus copies." },
       { property: "og:title", content: "Digital Resources — UniLibrary" },

@@ -7,6 +7,8 @@ import { useLibrary } from "@/lib/library/store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "UniLibrary — Discover. Learn. Grow." },
       { name: "description", content: "Explore your university library: search the catalog, reserve books, track loans and access digital learning resources." },
       { property: "og:title", content: "UniLibrary — Discover. Learn. Grow." },
@@ -71,7 +73,7 @@ function Home() {
         <h2 className="mb-3 text-lg font-bold">Browse by Category</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
           {cats.map((c) => {
-            const Icon = ICONS[c];
+            const Icon = ICONS[c] ?? Library;
             const count = books.filter((b) => b.category === c).length;
             return (
               <Link key={c} to="/catalog" search={{ category: c }} className="flex flex-col items-center gap-2 rounded-xl border bg-card p-4 text-center shadow-card transition hover:-translate-y-0.5 hover:border-primary">

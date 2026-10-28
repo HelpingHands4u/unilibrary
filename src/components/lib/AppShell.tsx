@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { actions, hydrateStore, useLibrary } from "@/lib/library/store";
+import { firebaseConfigured } from "@/lib/firebase";
+import { apiConfigured } from "@/lib/library/remote";
 import { fmtDate } from "./bits";
 
 function useNav() {
@@ -36,7 +38,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           <Link
             key={n.label + i}
             to={n.to}
-            search={n.label === "Wishlist" ? { tab: "wishlist" } : undefined}
+            search={n.label === "Wishlist" ? { tab: "wishlist" } : {}}
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
@@ -253,6 +255,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </div>
         </header>
+        <div role="status" className="border-b bg-secondary px-4 py-1.5 text-xs text-secondary-foreground">{!firebaseConfigured ? "Demonstration · changes saved in this browser only" : apiConfigured ? "Firebase connected" : "Firebase connected · library saving service not configured"}</div>
         <main className="min-w-0 flex-1 px-3 py-5 sm:px-6">{children}</main>
         <Footer />
       </div>

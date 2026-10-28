@@ -27,6 +27,8 @@ export const Route = createFileRoute("/catalog")({
   validateSearch: zodValidator(schema),
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Catalog — UniLibrary" },
       { name: "description", content: "Search and filter the UniLibrary catalog by subject, availability, format, year, language and rating." },
       { property: "og:title", content: "Catalog — UniLibrary" },

@@ -10,17 +10,17 @@ import { actions, bookStats, useLibrary } from "@/lib/library/store";
 import { availability } from "@/lib/library/rules";
 import { buildSeed } from "@/lib/library/seed";
 
-const seedBooks = buildSeed().books;
+const seedBooks = () => buildSeed(new Date("2026-10-27T00:00:00Z")).books;
 
 export const Route = createFileRoute("/book/$id")({
   loader: ({ params }) => {
-    const b = seedBooks.find((x) => x.id === params.id);
+    const b = seedBooks().find((x) => x.id === params.id);
     return { title: b?.title, author: b?.authors[0] };
   },
   head: ({ loaderData }) => {
     const t = loaderData?.title ? `${loaderData.title} — UniLibrary` : "Book — UniLibrary";
     const d = loaderData?.title ? `${loaderData.title} by ${loaderData.author}: availability, copies, reviews and reservations.` : "Book details at UniLibrary.";
-    return { meta: [{ title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }] };
+    return { meta: [{ property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }, { title: t }, { name: "description", content: d }, { property: "og:title", content: t }, { property: "og:description", content: d }] };
   },
   component: BookPage,
 });
@@ -44,7 +44,7 @@ function BookPage() {
   const [text, setText] = useState("");
   const book = state.books.find((b) => b.id === id);
   useEffect(() => {
-    if (book) actions.visit(book.id);
+    if (book && user) void Promise.resolve(actions.visit(book.id)).catch(() => {});
   }, [book?.id, user?.id]);
   if (!book) {
     return (
@@ -66,11 +66,11 @@ function BookPage() {
   const also = state.books.filter((b) => alsoIds.has(b.id)).slice(0, 6);
   const sameCat = state.books.filter((b) => b.category === book.category && b.id !== book.id).slice(0, 6);
   const canReview = user && state.loans.some((l) => l.userId === user.id && l.bookId === book.id);
-  const breakdown = [5, 4, 3, 2, 1].map((s) => ({ s, pct: s === 5 ? 62 : s === 4 ? 24 : s === 3 ? 9 : s === 2 ? 3 : 2 }));
+  const breakdown = [5, 4, 3, 2, 1].map((s) => ({ s, pct: reviews.length ? Math.round(reviews.filter(r => r.rating === s).length / reviews.length * 100) : 0 }));
 
   const reserve = () =>
-    guard(() => {
-      actions.reserve(book.id);
+    guard(async () => {
+      await actions.reserve(book.id);
       toast.success(available > 0 ? "Reserved! Collect it from the circulation desk." : "You've joined the waitlist.");
     });
 
@@ -139,8 +139,7 @@ function BookPage() {
             <Button
               variant="ghost"
               onClick={() => {
-                navigator.clipboard?.writeText(window.location.href);
-                toast.success("Link copied");
+                void navigator.clipboard?.writeText(window.location.href).then(() => toast.success("Link copied")).catch(() => toast.error("Could not copy the link"));
               }}
             >
               <Share2 className="size-4" /> Share Resource
@@ -160,7 +159,7 @@ function BookPage() {
                   <TableRow key={c.id}>
                     <TableCell className="font-mono text-xs">{c.barcode}</TableCell>
                     <TableCell className="whitespace-nowrap">{c.shelf}</TableCell>
-                    <TableCell><StatusBadge tone={COPY_TONE[c.status][0]}>{COPY_TONE[c.status][1]}</StatusBadge></TableCell>
+                    <TableCell><StatusBadge tone={(COPY_TONE[c.status] ?? ["muted", c.status])[0] as Tone}>{(COPY_TONE[c.status] ?? ["muted", c.status])[1]}</StatusBadge></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -192,9 +191,9 @@ function BookPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const t = text.trim();
-                if (t.length < 5 || t.length > 500) return toast.error("Review must be 5–500 characters");
-                guard(() => {
-                  actions.addReview(book.id, rating, t);
+                if (t.length < 5 || t.length > 500) { toast.error("Review must be 5–500 characters"); return; }
+                guard(async () => {
+                  await actions.addReview(book.id, rating, t);
                   setText("");
                   toast.success("Review posted");
                 });
