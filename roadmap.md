@@ -4,5 +4,7 @@
 - [x] Implement trusted FastAPI commands, Firestore rules and setup instructions.
 - [x] Finish inventory, profiles, linked resources and CSV reports.
 - [x] Test business rules and permission boundaries (5 frontend tests, 13 Python tests passed).
-- [ ] Activate and verify live Firebase saving — blocked by missing Firebase web configuration, service credentials on the Python host and hosted API URL; rules still need deployment to the user's Firebase project.
+- [x] Firebase web config connected (dls-15bfd); separate role sign-in portals added.
+- [ ] Live saving — blocked: rules deploy, Email/Password enable, Render service + service-account key, API URL.
+- [ ] Real library timings/helpdesk — waiting on details from user.
 - [ ] Verify Vercel deployment — blocked by access to the user's Vercel project; deployment configuration and instructions supplied.
