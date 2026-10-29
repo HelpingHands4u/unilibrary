@@ -3,11 +3,12 @@
 // VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, VITE_FIREBASE_APP_ID
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 
+// Publishable web config for project dls-15bfd; env vars override it.
 const cfg = {
-  apiKey: import.meta.env['VITE_FIREBASE_API_KEY'] as string | undefined,
-  authDomain: import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] as string | undefined,
-  projectId: import.meta.env['VITE_FIREBASE_PROJECT_ID'] as string | undefined,
-  appId: import.meta.env['VITE_FIREBASE_APP_ID'] as string | undefined,
+  apiKey: (import.meta.env['VITE_FIREBASE_API_KEY'] as string | undefined) ?? "AIzaSyCzAxKOEuChTUwe6i--E496NhtTUxVh7LY",
+  authDomain: (import.meta.env['VITE_FIREBASE_AUTH_DOMAIN'] as string | undefined) ?? "dls-15bfd.firebaseapp.com",
+  projectId: (import.meta.env['VITE_FIREBASE_PROJECT_ID'] as string | undefined) ?? "dls-15bfd",
+  appId: (import.meta.env['VITE_FIREBASE_APP_ID'] as string | undefined) ?? "1:289567587129:web:8ab0ff3a453b95853b46e8",
 };
 
 export const firebaseConfigured = Boolean(cfg.apiKey && cfg.projectId && cfg.authDomain);
