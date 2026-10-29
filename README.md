@@ -65,3 +65,7 @@ The application includes rule tests and Python authorization/transaction-domain 
 - **Payments:** demo payments are browser-only. Live students pay at the cashier; authorized staff record payments or waivers.
 
 Library hours and contact details need the university's real information. Optional course reading lists, direct file uploads and production-scale pagination are not implemented.
+
+## Render (Python service)
+`render.yaml` deploys `backend/` on Render's free plan. In Render: New → Blueprint → pick this repo, then set `FIREBASE_SERVICE_ACCOUNT_JSON` (Firebase console → Project settings → Service accounts → Generate key; paste the whole JSON) and `ALLOWED_ORIGINS` (your Vercel URL). Copy the Render URL into Vercel as `VITE_LIBRARY_API_URL`.
+Firebase project `dls-15bfd` is wired in. Enable Email/Password sign-in in Firebase Authentication and deploy rules with `firebase deploy --only firestore:rules --project dls-15bfd`.

@@ -277,6 +277,9 @@ function Footer() {
             <li><Link to="/catalog">Catalog</Link></li>
             <li><Link to="/resources">Digital resources</Link></li>
             <li><Link to="/my-library">My Library</Link></li>
+            <li><Link to="/login" search={{ portal: "librarian" }}>Librarian portal</Link></li>
+            <li><Link to="/login" search={{ portal: "admin" }}>Admin portal</Link></li>
+            <li><Link to="/login" search={{ portal: "faculty" }}>Faculty portal</Link></li>
           </ul>
         </div>
         <div>
