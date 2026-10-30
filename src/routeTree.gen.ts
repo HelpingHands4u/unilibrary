@@ -16,6 +16,7 @@ import { Route as LibrarianRouteImport } from './routes/librarian'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MyLibraryRouteImport } from './routes/my-library'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as ApiCommandsRouteImport } from './routes/api/commands'
 import { Route as BookIdRouteImport } from './routes/book.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const ResourcesRoute = ResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCommandsRoute = ApiCommandsRouteImport.update({
+  id: '/api/commands',
+  path: '/api/commands',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookIdRoute = BookIdRouteImport.update({
   id: '/book/$id',
   path: '/book/$id',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/my-library': typeof MyLibraryRoute
   '/resources': typeof ResourcesRoute
+  '/api/commands': typeof ApiCommandsRoute
   '/book/$id': typeof BookIdRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/my-library': typeof MyLibraryRoute
   '/resources': typeof ResourcesRoute
+  '/api/commands': typeof ApiCommandsRoute
   '/book/$id': typeof BookIdRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/my-library': typeof MyLibraryRoute
   '/resources': typeof ResourcesRoute
+  '/api/commands': typeof ApiCommandsRoute
   '/book/$id': typeof BookIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-library'
     | '/resources'
+    | '/api/commands'
     | '/book/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-library'
     | '/resources'
+    | '/api/commands'
     | '/book/$id'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/my-library'
     | '/resources'
+    | '/api/commands'
     | '/book/$id'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MyLibraryRoute: typeof MyLibraryRoute
   ResourcesRoute: typeof ResourcesRoute
+  ApiCommandsRoute: typeof ApiCommandsRoute
   BookIdRoute: typeof BookIdRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/commands': {
+      id: '/api/commands'
+      path: '/api/commands'
+      fullPath: '/api/commands'
+      preLoaderRoute: typeof ApiCommandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/book/$id': {
       id: '/book/$id'
       path: '/book/$id'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MyLibraryRoute: MyLibraryRoute,
   ResourcesRoute: ResourcesRoute,
+  ApiCommandsRoute: ApiCommandsRoute,
   BookIdRoute: BookIdRoute,
 }
 export const routeTree = rootRouteImport
