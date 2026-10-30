@@ -1,20 +1,19 @@
 import { getFirebaseApp } from '@/lib/firebase';
 import type { LibraryState, User } from './types';
 
-export const apiConfigured = Boolean(import.meta.env['VITE_LIBRARY_API_URL']);
+// Saving runs inside this same website (/api/commands), so one Vercel deployment serves everything.
+export const apiConfigured = true;
 export async function libraryCommand(command: string, args: unknown[]) {
   const app = getFirebaseApp();
   if (!app) throw new Error('Firebase is not configured');
   const { getAuth } = await import('firebase/auth');
   const user = getAuth(app).currentUser;
   if (!user) throw new Error('Please sign in first');
-  const url = import.meta.env['VITE_LIBRARY_API_URL'];
-  if (!url) throw new Error('The library service is not connected yet');
-  const response = await fetch(`${url.replace(/\/$/, '')}/commands`, {
+  const response = await fetch('/api/commands', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await user.getIdToken()}` },
     body: JSON.stringify({ command, args }),
   });
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : 'Unable to save this change');
   return result.result;
 }
